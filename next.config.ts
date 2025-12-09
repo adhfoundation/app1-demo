@@ -1,7 +1,26 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Otimizações para evitar travamentos
+  reactStrictMode: true,
+  
+  // Configuração do Turbopack (Next.js 16+)
+  turbopack: {},
+  
+  // Headers para melhorar estabilidade
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
