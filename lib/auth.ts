@@ -36,10 +36,12 @@ export async function validateToken(): Promise<{
 
 /**
  * Atualiza o access token usando o refresh token
+ * Seguindo a especificação: grant_type: "refresh_token"
  */
 export async function refreshAccessToken(): Promise<{
   success: boolean;
   access_token?: string;
+  id_token?: string;
   refresh_token?: string;
   error?: string;
 }> {
@@ -57,8 +59,8 @@ export async function refreshAccessToken(): Promise<{
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grant_type: "refresh_token",
-          client_id: "i9kz2u01dpu2t1n0eh388",
           refresh_token: refreshToken,
+          client_id: "i9kz2u01dpu2t1n0eh388",
         }),
       }
     );
@@ -71,8 +73,12 @@ export async function refreshAccessToken(): Promise<{
     const tokens = await response.json();
     
     // Atualiza os tokens no localStorage
+    // Importante: usar o novo refresh_token retornado (rotação de tokens)
     if (tokens.access_token) {
       localStorage.setItem("access_token", tokens.access_token);
+    }
+    if (tokens.id_token) {
+      localStorage.setItem("id_token", tokens.id_token);
     }
     if (tokens.refresh_token) {
       localStorage.setItem("refresh_token", tokens.refresh_token);
@@ -81,6 +87,7 @@ export async function refreshAccessToken(): Promise<{
     return {
       success: true,
       access_token: tokens.access_token,
+      id_token: tokens.id_token,
       refresh_token: tokens.refresh_token,
     };
   } catch (error) {

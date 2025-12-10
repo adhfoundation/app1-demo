@@ -46,6 +46,9 @@ export default function CallbackPage() {
 
         //guarda no storage
         localStorage.setItem("access_token", tokens.access_token);
+        if (tokens.id_token) {
+          localStorage.setItem("id_token", tokens.id_token);
+        }
         localStorage.setItem("refresh_token", tokens.refresh_token);
 
         //redireciona p aplicação

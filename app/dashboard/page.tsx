@@ -1,8 +1,10 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useBranding } from "@/hooks/useBranding";
 import { refreshAccessToken, validateToken, getTokenClaims } from "@/lib/auth";
 import { useState } from "react";
+import Image from "next/image";
 
 function formatDate(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleString("pt-BR");
@@ -10,14 +12,32 @@ function formatDate(timestamp: number): string {
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading, userClaims, logout } = useAuth(true);
+  const { branding, isLoading: isLoadingBranding, error: brandingError, loadBranding } = useBranding();
+  const [authorizationId, setAuthorizationId] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
     message?: string;
   } | null>(null);
+  const [refreshResult, setRefreshResult] = useState<{
+    success: boolean;
+    message?: string;
+  } | null>(null);
   const [fullClaims, setFullClaims] = useState<unknown | null>(null);
   const [showFullClaims, setShowFullClaims] = useState(false);
+
+  const handleLoadBranding = () => {
+    if (authorizationId.trim()) {
+      loadBranding(authorizationId.trim());
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleLoadBranding();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -42,16 +62,28 @@ export default function DashboardPage() {
 
   const handleRefreshToken = async () => {
     setIsRefreshing(true);
+    setRefreshResult(null);
     try {
       const result = await refreshAccessToken();
       if (result.success) {
-        alert("Token renovado com sucesso! A página será recarregada.");
-        window.location.reload();
+        setRefreshResult({
+          success: true,
+          message: "Token renovado com sucesso! A página será recarregada em 2 segundos...",
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
-        alert(`Erro ao renovar token: ${result.error || "Erro desconhecido"}`);
+        setRefreshResult({
+          success: false,
+          message: `Erro ao renovar token: ${result.error || "Erro desconhecido"}`,
+        });
       }
     } catch (error) {
-      alert(`Erro ao renovar token: ${error instanceof Error ? error.message : "Erro desconhecido"}`);
+      setRefreshResult({
+        success: false,
+        message: `Erro ao renovar token: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -134,6 +166,264 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Input para Authorization ID */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Buscar Dados de Customização
+          </h2>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={authorizationId}
+              onChange={(e) => setAuthorizationId(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Digite o authorization_id (ex: 1Nk772KKmd8551E6NjCr3)"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              onClick={handleLoadBranding}
+              disabled={isLoadingBranding || !authorizationId.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+            >
+              {isLoadingBranding ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Buscar
+                </>
+              )}
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-2">
+            Digite o authorization_id e pressione Enter ou clique em Buscar
+          </p>
+        </div>
+
+        {/* Card de Customização */}
+        {(isLoadingBranding || brandingError || branding) && (
+          <>
+            {isLoadingBranding ? (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-3 text-gray-600">Carregando dados de customização...</span>
+                </div>
+              </div>
+            ) : brandingError ? (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-red-200">
+                <div className="flex items-center gap-2 text-red-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">Erro ao carregar dados de customização: {brandingError}</span>
+                </div>
+              </div>
+            ) : branding ? (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              Informações de Customização
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Client Name */}
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Nome do Cliente</div>
+                <div className="text-lg font-semibold text-gray-900">{branding.clientName}</div>
+              </div>
+
+              {/* Cores */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">Cores</div>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-12 h-12 rounded-lg border-2 border-gray-300 shadow-sm"
+                      style={{ backgroundColor: branding.branding.primaryColor }}
+                      title={`Cor Primária: ${branding.branding.primaryColor}`}
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">Primária</div>
+                      <div className="text-xs text-gray-500 font-mono">{branding.branding.primaryColor}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-12 h-12 rounded-lg border-2 border-gray-300 shadow-sm"
+                      style={{ backgroundColor: branding.branding.secondaryColor }}
+                      title={`Cor Secundária: ${branding.branding.secondaryColor}`}
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">Secundária</div>
+                      <div className="text-xs text-gray-500 font-mono">{branding.branding.secondaryColor}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">Logo</div>
+                {branding.branding.logo && branding.branding.logo !== "..." ? (
+                  <div className="flex items-center gap-4">
+                    <div className="border-2 border-gray-200 rounded-lg p-2 bg-gray-50">
+                      <Image
+                        src={branding.branding.logo}
+                        alt="Logo"
+                        width={100}
+                        height={100}
+                        className="max-w-[100px] max-h-[100px] object-contain"
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.target as HTMLElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <a 
+                      href={branding.branding.logo} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-sm underline"
+                    >
+                      Ver imagem completa
+                    </a>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">Não disponível</div>
+                )}
+              </div>
+
+              {/* Background */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">Background</div>
+                {branding.branding.backgroundUrl && branding.branding.backgroundUrl !== "..." ? (
+                  <div className="space-y-2">
+                    <div className="border-2 border-gray-200 rounded-lg p-2 bg-gray-50 w-full max-w-md">
+                      <Image
+                        src={branding.branding.backgroundUrl}
+                        alt="Background"
+                        width={300}
+                        height={150}
+                        className="w-full h-auto object-cover rounded"
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.target as HTMLElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <a 
+                      href={branding.branding.backgroundUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-sm underline"
+                    >
+                      Ver imagem completa
+                    </a>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">Não disponível</div>
+                )}
+              </div>
+
+              {/* Favicon */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">Favicon</div>
+                {branding.branding.faviconUrl && branding.branding.faviconUrl !== "..." ? (
+                  <a 
+                    href={branding.branding.faviconUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-sm underline"
+                  >
+                    {branding.branding.faviconUrl}
+                  </a>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">Não disponível</div>
+                )}
+              </div>
+
+              {/* Carrossel */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">Carrossel</div>
+                {branding.carousel && branding.carousel.length > 0 ? (
+                  <div className="space-y-3">
+                    {branding.carousel.map((item, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Item {index + 1}</div>
+                        {item.imageUrl && item.imageUrl !== "..." && (
+                          <div className="mb-2">
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.title || `Carrossel ${index + 1}`}
+                              width={200}
+                              height={100}
+                              className="max-w-[200px] max-h-[100px] object-cover rounded border border-gray-200"
+                              unoptimized
+                              onError={(e) => {
+                                const target = e.target as HTMLElement;
+                                target.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium mb-1">{item.title || "Sem título"}</div>
+                          <div className="text-xs">{item.description || "Sem descrição"}</div>
+                        </div>
+                        {item.imageUrl && item.imageUrl !== "..." && (
+                          <a 
+                            href={item.imageUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-xs underline mt-2 inline-block"
+                          >
+                            Ver imagem completa
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">Nenhum item no carrossel</div>
+                )}
+              </div>
+
+              {/* Scope */}
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Scope</div>
+                <div className="text-sm text-gray-900 font-mono bg-gray-50 p-2 rounded">{branding.scope}</div>
+              </div>
+
+              {/* JSON Completo */}
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                  Ver JSON completo
+                </summary>
+                <div className="mt-2 bg-gray-50 rounded-lg p-4 overflow-x-auto border border-gray-200">
+                  <pre className="text-xs text-gray-800">
+                    {JSON.stringify(branding, null, 2)}
+                  </pre>
+                </div>
+              </details>
+            </div>
+          </div>
+            ) : null}
+          </>
+        )}
+
         {/* Botões de Validação */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
           <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2">
@@ -191,6 +481,30 @@ export default function DashboardPage() {
               Ver Claims Completas
             </button>
           </div>
+          {refreshResult && (
+            <div className={`mt-4 p-4 rounded-lg ${
+              refreshResult.success 
+                ? "bg-green-50 border border-green-200" 
+                : "bg-red-50 border border-red-200"
+            }`}>
+              <div className="flex items-center gap-2">
+                {refreshResult.success ? (
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                <span className={`font-medium ${
+                  refreshResult.success ? "text-green-800" : "text-red-800"
+                }`}>
+                  {refreshResult.message}
+                </span>
+              </div>
+            </div>
+          )}
           {validationResult && (
             <div className={`mt-4 p-4 rounded-lg ${
               validationResult.valid 
