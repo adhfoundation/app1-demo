@@ -40,7 +40,7 @@ export default function LandingPage() {
       });
 
       const url =
-        "https://business-logic-hub.sso-dev.afya.systems/auth/authorize?" +
+        "https://business-logic-hub.develop.afya.systems/auth/authorize?" +
         params.toString();
 
       window.location.href = url;

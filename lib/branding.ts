@@ -38,7 +38,7 @@ export async function fetchBrandingData(authorizationId: string): Promise<{
   }
 
   try {
-    const url = new URL("https://business-logic-hub.sso-dev.afya.systems/auth/authorization-info");
+    const url = new URL("https://business-logic-hub.develop.afya.systems/auth/authorization-info");
     url.searchParams.set("authorization_id", authorizationId);
 
     const response = await fetch(url.toString(), {

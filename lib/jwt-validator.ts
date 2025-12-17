@@ -1,6 +1,6 @@
 import { jwtVerify, createRemoteJWKSet } from "jose";
 
-const JWKS_URL = "https://business-logic-hub.sso-dev.afya.systems/.well-known/jwks.json";
+const JWKS_URL = "https://business-logic-hub.develop.afya.systems/.well-known/jwks.json";
 
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 

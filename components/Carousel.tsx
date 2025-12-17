@@ -126,3 +126,4 @@ export default function Carousel({ items, primaryColor = "#FF007F", secondaryCol
   );
 }
 
+

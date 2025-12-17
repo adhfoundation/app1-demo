@@ -53,7 +53,7 @@ export async function refreshAccessToken(): Promise<{
 
   try {
     const response = await fetch(
-      "https://business-logic-hub.sso-dev.afya.systems/auth/token",
+      "https://business-logic-hub.develop.afya.systems/auth/token",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
