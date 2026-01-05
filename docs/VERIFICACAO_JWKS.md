@@ -7,7 +7,7 @@ Após corrigir o servidor SSO, você pode verificar se o JWKS está funcionando:
 ### 1. Testar Endpoint JWKS
 
 ```bash
-curl https://business-logic-hub.develop.afya.systems/.well-known/jwks.json
+curl https://identity-api.develop.afya.systems/.well-known/jwks.json
 ```
 
 **Resposta esperada:**

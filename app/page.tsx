@@ -40,7 +40,7 @@ export default function LandingPage() {
       });
 
       const url =
-        "https://business-logic-hub.develop.afya.systems/auth/authorize?" +
+        "https://identity-api.develop.afya.systems/auth/authorize?" +
         params.toString();
 
       window.location.href = url;

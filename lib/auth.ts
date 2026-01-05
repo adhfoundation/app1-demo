@@ -7,7 +7,7 @@ export async function validateToken(): Promise<{
   payload?: unknown;
 }> {
   const accessToken = localStorage.getItem("access_token");
-  
+
   if (!accessToken) {
     return { valid: false };
   }
@@ -46,14 +46,14 @@ export async function refreshAccessToken(): Promise<{
   error?: string;
 }> {
   const refreshToken = localStorage.getItem("refresh_token");
-  
+
   if (!refreshToken) {
     return { success: false, error: "Refresh token não encontrado" };
   }
 
   try {
     const response = await fetch(
-      "https://business-logic-hub.develop.afya.systems/auth/token",
+      "https://identity-api.develop.afya.systems/auth/token",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ export async function refreshAccessToken(): Promise<{
     }
 
     const tokens = await response.json();
-    
+
     // Atualiza os tokens no localStorage
     // Importante: usar o novo refresh_token retornado (rotação de tokens)
     if (tokens.access_token) {
@@ -108,7 +108,7 @@ export async function getTokenClaims(): Promise<{
   error?: string;
 }> {
   const result = await validateToken();
-  
+
   if (!result.valid) {
     return { success: false, error: "Token inválido ou expirado" };
   }
