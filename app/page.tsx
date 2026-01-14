@@ -28,11 +28,18 @@ export default function LandingPage() {
 
       const challenge = await generateCodeChallenge(verifier);
 
+      // Obtém scopes do localStorage ou usa os padrão
+      const savedScopes = localStorage.getItem("current_scopes");
+      const scopes = savedScopes || "openid profile email offline_access";
+      
+      // Salva os scopes que serão usados
+      localStorage.setItem("current_scopes", scopes);
+
       const params = new URLSearchParams({
         client_id: "i9kz2u01dpu2t1n0eh388",
         redirect_uri: "http://localhost:3000/callback",
         response_type: "code",
-        scope: "openid profile email offline_access",
+        scope: scopes,
         state: "abc123",
         code_challenge: challenge,
         code_challenge_method: "S256",
