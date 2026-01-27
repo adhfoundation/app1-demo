@@ -61,7 +61,7 @@ export default function CallbackPage() {
         const redirectUri = `${currentOrigin}/callback`;
         
         const response = await fetch(
-          "https://identity-api.develop.afya.systems/auth/token",
+          `${process.env.NEXT_PUBLIC_AFYA_IDENTITY_API_URL}/auth/token`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,7 +83,11 @@ export default function CallbackPage() {
           return;
         }
 
-        const tokens = await response.json();
+        const tokens: {
+          access_token: string;
+          refresh_token: string;
+          id_token?: string;
+        } = await response.json();
 
         //guarda no storage
         localStorage.setItem("access_token", tokens.access_token);

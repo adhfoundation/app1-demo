@@ -292,7 +292,7 @@ export default function LandingPage() {
       });
 
       const url =
-        "https://identity-api.develop.afya.systems/auth/authorize?" +
+        `${process.env.NEXT_PUBLIC_AFYA_IDENTITY_API_URL}/auth/authorize?` +
         params.toString();
 
       window.location.href = url;

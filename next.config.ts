@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Otimizações para evitar travamentos
   reactStrictMode: true,
+  output: "standalone",
   
   // Configuração do Turbopack (Next.js 16+)
   turbopack: {},

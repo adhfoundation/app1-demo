@@ -4,7 +4,7 @@
  */
 export async function validateToken(): Promise<{
   valid: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
 }> {
   const accessToken = localStorage.getItem("access_token");
 
@@ -53,7 +53,7 @@ export async function refreshAccessToken(): Promise<{
 
   try {
     const response = await fetch(
-      "https://identity-api.develop.afya.systems/auth/token",
+      `${process.env.NEXT_PUBLIC_AFYA_IDENTITY_API_URL}/auth/token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +178,7 @@ export async function refreshAccessTokenWithScopes(scopes: string): Promise<{
  */
 export function decodeJWT(token: string): {
   success: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
   error?: string;
 } {
   try {
@@ -246,7 +246,7 @@ export async function validateIdToken(): Promise<{
  */
 export async function getAccessTokenClaims(): Promise<{
   success: boolean;
-  claims?: unknown;
+  claims?: Record<string, unknown>;
   error?: string;
 }> {
   const result = await validateToken();
@@ -266,7 +266,7 @@ export async function getAccessTokenClaims(): Promise<{
  */
 export async function getIdTokenClaims(): Promise<{
   success: boolean;
-  claims?: unknown;
+  claims?: Record<string, unknown>;
   error?: string;
 }> {
   const result = await validateIdToken();
@@ -277,7 +277,7 @@ export async function getIdTokenClaims(): Promise<{
 
   return {
     success: true,
-    claims: result.payload,
+    claims: result.payload as Record<string, unknown>,
   };
 }
 

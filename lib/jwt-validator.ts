@@ -1,6 +1,6 @@
 import { jwtVerify, createRemoteJWKSet } from "jose";
 
-const JWKS_URL = "https://identity-api.develop.afya.systems/.well-known/jwks.json";
+const JWKS_URL = `${process.env.NEXT_PUBLIC_AFYA_IDENTITY_API_URL}/.well-known/jwks.json`;
 
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
@@ -13,7 +13,7 @@ function getJWKS() {
 
 export async function validateJWT(token: string): Promise<{
   valid: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
   error?: string;
 }> {
   try {
