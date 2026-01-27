@@ -178,7 +178,7 @@ export async function refreshAccessTokenWithScopes(scopes: string): Promise<{
  */
 export function decodeJWT(token: string): {
   success: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
   error?: string;
 } {
   try {

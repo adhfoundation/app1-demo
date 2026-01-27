@@ -45,8 +45,8 @@ export default function DashboardPage() {
     id_token: string | null;
     refresh_token: string | null;
   }>({ access_token: null, id_token: null, refresh_token: null });
-  const [accessTokenClaims, setAccessTokenClaims] = useState<unknown | null>(null);
-  const [idTokenClaims, setIdTokenClaims] = useState<unknown | null>(null);
+  const [accessTokenClaims, setAccessTokenClaims] = useState<Record<string, unknown> | null>(null);
+  const [idTokenClaims, setIdTokenClaims] = useState<Record<string, unknown> | null>(null);
   const [showAccessToken, setShowAccessToken] = useState(false);
   const [showIdToken, setShowIdToken] = useState(false);
   const [showRefreshToken, setShowRefreshToken] = useState(false);
@@ -69,14 +69,14 @@ export default function DashboardPage() {
     // Decodifica os tokens para exibição (sem validação)
     if (storedTokens.access_token) {
       const accessDecoded = decodeJWT(storedTokens.access_token);
-      if (accessDecoded.success) {
+      if (accessDecoded.success && accessDecoded.payload) {
         setAccessTokenClaims(accessDecoded.payload);
       }
     }
 
     if (storedTokens.id_token) {
       const idDecoded = decodeJWT(storedTokens.id_token);
-      if (idDecoded.success) {
+      if (idDecoded.success && idDecoded.payload) {
         setIdTokenClaims(idDecoded.payload);
       }
     }
@@ -134,17 +134,17 @@ export default function DashboardPage() {
         // Decodifica os novos tokens
         if (updatedTokens.access_token) {
           const accessDecoded = decodeJWT(updatedTokens.access_token);
-          if (accessDecoded.success) {
+          if (accessDecoded.success && accessDecoded.payload) {
             setAccessTokenClaims(accessDecoded.payload);
           }
         }
         if (updatedTokens.id_token) {
           const idDecoded = decodeJWT(updatedTokens.id_token);
-          if (idDecoded.success) {
+          if (idDecoded.success && idDecoded.payload) {
             setIdTokenClaims(idDecoded.payload);
           }
         }
-        
+
         setRefreshResult({
           success: true,
           message: "Token renovado com sucesso! A página será recarregada em 2 segundos...",
@@ -230,17 +230,17 @@ export default function DashboardPage() {
         // Decodifica os novos tokens
         if (updatedTokens.access_token) {
           const accessDecoded = decodeJWT(updatedTokens.access_token);
-          if (accessDecoded.success) {
+          if (accessDecoded.success && accessDecoded.payload) {
             setAccessTokenClaims(accessDecoded.payload);
           }
         }
         if (updatedTokens.id_token) {
           const idDecoded = decodeJWT(updatedTokens.id_token);
-          if (idDecoded.success) {
+          if (idDecoded.success && idDecoded.payload) {
             setIdTokenClaims(idDecoded.payload);
           }
         }
-        
+
         setRefreshWithScopesResult({
           success: true,
           message: "Token renovado com novos scopes! A página será recarregada em 2 segundos para mostrar as claims atualizadas...",
