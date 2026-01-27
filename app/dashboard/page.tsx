@@ -36,6 +36,10 @@ export default function DashboardPage() {
     success: boolean;
     message?: string;
   } | null>(null);
+  const [refreshResult, setRefreshResult] = useState<{
+    success: boolean;
+    message?: string;
+  } | null>(null);
   const [tokens, setTokens] = useState<{
     access_token: string | null;
     id_token: string | null;
