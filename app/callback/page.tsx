@@ -19,7 +19,7 @@ export default function CallbackPage() {
 
       try {
         const response = await fetch(
-          "https://business-logic-hub.sso-dev.afya.systems/auth/token",
+          `${process.env.NEXT_PUBLIC_AFYA_IDENTITY_API_URL}/auth/token`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
