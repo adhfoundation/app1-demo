@@ -1,64 +1,96 @@
-name: Deploy to Development Environment
+name: Deploy pipeline dev
 
 on:
-  workflow_dispatch:
   push:
+    paths-ignore:
+      - '.github/**'
+      - '**.md'
+      - 'docs/**'
     branches:
-      - develop
-      - main
+      - development
+  pull_request:
+    branches:
+      - '*'
+    paths-ignore:
+      - '.github/**'
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+run-name: 'Development Release | ${{ github.sha }} by @${{ github.actor }}'
+
+concurrency:
+  group: development-delivery
+  cancel-in-progress: false
 
 env:
   ECR_REPOSITORY: app1-demo
   AWS_REGION: us-east-1
 
 jobs:
-  build:
-    name: Build and Push Docker Image
+  quality_check:
+    name: Code Quality Check
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      image-tag: ${{ steps.meta.outputs.image-tag }}
-    
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/development') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'development') ||
+      github.event_name == 'workflow_dispatch'
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Docker meta
-        id: meta
-        run: |
-          IMAGE_TAG="${{ github.sha }}-${{ github.run_number }}"
-          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "Image tag: ${IMAGE_TAG}"
-
-      - name: Build and Push to ECR
-        uses: adhfoundation/public-github-actions-workflows/.github/workflows/build-image-to-ecr-v2.yaml@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          docker-build-args: |
-            NEXT_PUBLIC_AFYA_IDENTITY_API_URL=https://identity-api.develop.afya.systems
-          docker-tag: ${{ steps.meta.outputs.image-tag }}
-          ecr-repository: ${{ env.ECR_REPOSITORY }}
-          environment: dev
+          node-version: '20'
+          cache: 'npm'
 
-  deploy:
-    name: Deploy to ArgoCD
-    needs: [build]
-    runs-on: ubuntu-latest
+      - name: Clean npm cache (if needed)
+        run: npm cache verify
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Build Application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_AFYA_IDENTITY_API_URL: https://identity-api.develop.afya.systems
+
+  build_and_push:
+    name: Build & Push Docker Image
+    needs: [quality_check]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/development') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'development') ||
+      github.event_name == 'workflow_dispatch'
+    uses: adhfoundation/public-github-actions-workflows/.github/workflows/build-image-to-ecr-v2.yaml@main
     permissions:
       id-token: write
       contents: read
-    
-    steps:
-      - name: Deploy to Development
-        uses: adhfoundation/public-github-actions-workflows/.github/workflows/deploy-argocd-v3.yaml@main
-        with:
-          argocd-app-name: dev-app1-demo
-          argocd-chart-path: afya-helm-charts
-          argocd-chart-repo: https://github.com/adhfoundation/afya-helm-charts
-          argocd-values-file: values-dev.yaml
-          environment: dev
-          image-tag: ${{ needs.build.outputs.image-tag }}
-          namespace: app1-demo
-        secrets:
-          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+    with:
+      docker-build-args: |
+        NEXT_PUBLIC_AFYA_IDENTITY_API_URL=https://identity-api.develop.afya.systems
+      docker-tag: ${{ github.sha }}-${{ github.run_number }}
+      environment: development
+
+  release_to_development:
+    name: Deploy to ArgoCD
+    needs: [build_and_push]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/development') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'development') ||
+      github.event_name == 'workflow_dispatch'
+    uses: adhfoundation/public-github-actions-workflows/.github/workflows/deploy-argocd-v3.yaml@main
+    with:
+      argocd-app-name: development-app1-demo
+      argocd-chart-path: sso/app1-demo
+      argocd-chart-repo: https://github.com/adhfoundation/afya-helm-charts
+      argocd-values-file: values-development.yaml
+      environment: development
+      image-tag: ${{ github.sha }}-${{ github.run_number }}
+      namespace: app1-demo
+    secrets:
+      ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
