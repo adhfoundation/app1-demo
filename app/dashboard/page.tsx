@@ -28,11 +28,7 @@ export default function DashboardPage() {
     valid: boolean;
     message?: string;
   } | null>(null);
-  const [refreshResult, setRefreshResult] = useState<{
-    success: boolean;
-    message?: string;
-  } | null>(null);
-  const [fullClaims, setFullClaims] = useState<unknown | null>(null);
+  const [fullClaims, setFullClaims] = useState<Record<string, unknown> | null>(null);
   const [showFullClaims, setShowFullClaims] = useState(false);
   const [customScopes, setCustomScopes] = useState("");
   const [isRefreshingWithScopes, setIsRefreshingWithScopes] = useState(false);
@@ -172,7 +168,7 @@ export default function DashboardPage() {
     setIsValidating(true);
     setValidationResult(null);
     try {
-      const result = await validateToken();
+      const result: { valid: boolean; payload?: Record<string, unknown> } = await validateToken();
       setValidationResult({
         valid: result.valid,
         message: result.valid ? "Token válido!" : "Token inválido ou expirado",
@@ -1050,7 +1046,7 @@ export default function DashboardPage() {
           {showFullClaims && fullClaims ? (
             <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto border-2 border-purple-200">
               <pre className="text-sm text-gray-800">
-                {JSON.stringify(fullClaims, null, 2)}
+                {JSON.stringify(fullClaims as Record<string, unknown>, null, 2)}
               </pre>
             </div>
           ) : (

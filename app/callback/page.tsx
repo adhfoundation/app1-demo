@@ -83,7 +83,11 @@ export default function CallbackPage() {
           return;
         }
 
-        const tokens = await response.json();
+        const tokens: {
+          access_token: string;
+          refresh_token: string;
+          [key: string]: unknown;
+        } = await response.json();
 
         //guarda no storage
         localStorage.setItem("access_token", tokens.access_token);

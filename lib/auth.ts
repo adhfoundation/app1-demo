@@ -4,7 +4,7 @@
  */
 export async function validateToken(): Promise<{
   valid: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
 }> {
   const accessToken = localStorage.getItem("access_token");
 
@@ -246,7 +246,7 @@ export async function validateIdToken(): Promise<{
  */
 export async function getAccessTokenClaims(): Promise<{
   success: boolean;
-  claims?: unknown;
+  claims?: Record<string, unknown>;
   error?: string;
 }> {
   const result = await validateToken();

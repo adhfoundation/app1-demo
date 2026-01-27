@@ -13,7 +13,7 @@ function getJWKS() {
 
 export async function validateJWT(token: string): Promise<{
   valid: boolean;
-  payload?: unknown;
+  payload?: Record<string, unknown>;
   error?: string;
 }> {
   try {
