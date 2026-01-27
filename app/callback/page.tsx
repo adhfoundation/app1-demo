@@ -86,7 +86,7 @@ export default function CallbackPage() {
         const tokens: {
           access_token: string;
           refresh_token: string;
-          [key: string]: unknown;
+          id_token?: string;
         } = await response.json();
 
         //guarda no storage
