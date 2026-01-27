@@ -1,0 +1,29 @@
+name: Deploy pipeline dev
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: adhfoundation/public-github-actions-workflows/.github/workflows/build-image-to-ecr-v2.yaml@main
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      #docker-build-target: <if you have multi-stage-build>
+      docker-tag: ${{ github.sha }}-${{ github.run_number }}
+      environment: dev
+
+  deploy:
+    needs: [build]
+    uses: adhfoundation/public-github-actions-workflows/.github/workflows/deploy-argocd-v3.yaml@main
+    with:
+      argocd-app-name: dev-app1-demo
+      argocd-chart-path: afya-helm-charts
+      argocd-chart-repo: https://github.com/adhfoundation/afya-helm-charts
+      argocd-values-file: values-dev.yaml
+      environment: dev
+      image-tag: ${{ github.sha }}-${{ github.run_number }}
+      namespace: app1-demo
+    secrets:
+      ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
