@@ -266,7 +266,7 @@ export async function getAccessTokenClaims(): Promise<{
  */
 export async function getIdTokenClaims(): Promise<{
   success: boolean;
-  claims?: unknown;
+  claims?: Record<string, unknown>;
   error?: string;
 }> {
   const result = await validateIdToken();
@@ -277,7 +277,7 @@ export async function getIdTokenClaims(): Promise<{
 
   return {
     success: true,
-    claims: result.payload,
+    claims: result.payload as Record<string, unknown>,
   };
 }
 
