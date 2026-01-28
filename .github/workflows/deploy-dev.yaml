@@ -24,7 +24,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js             
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -64,7 +64,7 @@ jobs:
       argocd-app-name: development-app1-demo
       argocd-chart-path: sso/app1-demo
       argocd-chart-repo: https://github.com/adhfoundation/afya-helm-charts
-      argocd-values-file: values-development.yaml
+      argocd-values-file: values-dev.yaml
       environment: development
       image-tag: ${{ github.sha }}-${{ github.run_number }}
       namespace: app1-demo
